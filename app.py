@@ -19,16 +19,14 @@ threading.Thread(target=init_rag_background, daemon=True).start()
 
 @app.route("/api/analyze", methods=["POST"])
 def analyze():
-    data = request.get_json()
+    data = request.get_json() or {}
     company = data.get("company", "").strip()
     if not company:
         return jsonify({"error": "Company name required"}), 400
     try:
-        print(f"Scraping news for: {company}")
         news_articles = scrape_esg_news(company)
         esg_reports = scrape_esg_reports(company)
         sentiment = analyze_sentiment(news_articles)
-        print(f"Running AI analysis for: {company}")
         result = generate_esg_analysis(company, news_articles, sentiment)
         result["news_articles"] = news_articles[:3]
         result["scraping_status"] = {
@@ -38,7 +36,6 @@ def analyze():
         }
         return jsonify(result)
     except Exception as e:
-        print(f"Analysis error: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/health", methods=["GET"])
