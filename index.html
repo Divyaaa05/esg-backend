@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ESG Intelligence — Next-Gen Dual-Metric Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#080c0a;--bg2:#0d1410;--bg3:#111a14;--bg4:#162019;
+  --surface:#1a2820;--border:rgba(45,210,120,.12);--border2:rgba(45,210,120,.22);
+  --green:#2dd278;--green2:#1a9e58;--greendim:rgba(45,210,120,.08);
+  --amber:#f0a500;--red:#f05050;
+  --text:#e8f2ec;--text2:#8aab94;--text3:#4a6e54;
+  --mono:'JetBrains Mono',monospace;--display:'Clash Display',sans-serif;--body:'Cabinet Grotesk',sans-serif;
+  --r:12px;--rl:18px;--rxl:24px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% 10%,rgba(45,210,120,.04) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(45,210,120,.03) 0%,transparent 50%);pointer-events:none;z-index:0}
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:32px 20px 80px}
+.site-hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:36px;border-bottom:1px solid var(--border);margin-bottom:44px;animation:fu .6s ease both}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-mk{width:40px;height:40px;border-radius:11px;background:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mk svg{width:22px;height:22px}
+.logo-nm{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:-.3px}
+.logo-sb{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:1px}
+.live-b{display:flex;align-items:center;gap:7px;background:var(--greendim);border:1px solid var(--border2);padding:7px 16px;border-radius:30px;font-size:11px;font-family:var(--mono);color:var(--green)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:glow 2s infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(45,210,120,.4)}50%{box-shadow:0 0 0 6px rgba(45,210,120,0)}}
+.search-sec{margin-bottom:48px;animation:fu .6s .1s ease both}
+.eyebrow{font-family:var(--mono);font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:block;width:20px;height:1px;background:var(--green2)}
+h1{font-family:var(--display);font-size:clamp(30px,4.5vw,52px);font-weight:700;line-height:1.08;margin-bottom:10px;letter-spacing:-.5px}
+h1 span{color:var(--green)}
+.sub{font-size:15px;color:var(--text2);margin-bottom:30px;line-height:1.7;max-width:620px}
+.sbox{display:flex;gap:10px;margin-bottom:20px}
+.sinp{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:14px 18px;font-size:14px;font-family:var(--body);color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s}
+.sinp::placeholder{color:var(--text3)}
+.sinp:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(45,210,120,.1)}
+.sbtn{background:var(--green);color:#060c08;border:none;padding:14px 26px;border-radius:var(--r);font-size:14px;font-family:var(--display);font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s,transform .12s;display:flex;align-items:center;gap:8px}
+.sbtn:hover{background:#4de896;transform:translateY(-1px)}
+.sbtn:active{transform:translateY(0)}
+.chips-lbl{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-size:11px;padding:5px 13px;border:1px solid var(--border);border-radius:30px;background:var(--bg3);color:var(--text2);cursor:pointer;font-family:var(--mono);transition:all .18s}
+.chip:hover{border-color:var(--green);color:var(--green);background:var(--greendim);transform:translateY(-1px)}
+.loading{display:none;padding:90px 40px;text-align:center}
+.loading.on{display:block;animation:fu .4s ease both}
+.ring{width:60px;height:60px;border-radius:50%;border:2px solid var(--border2);border-top-color:var(--green);animation:spin 1s linear infinite;margin:0 auto 24px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lco{font-family:var(--display);font-size:22px;color:var(--green);margin-bottom:8px;font-weight:600}
+.lstp{font-size:13px;color:var(--text2);font-family:var(--mono)}
+.results{display:none}
+.results.on{display:block;animation:fu .5s ease both}
+.co-hero{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rxl);padding:28px 32px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px;position:relative;overflow:hidden}
+.co-hero::before{content:'';position:absolute;top:0;right:0;width:320px;height:100%;background:radial-gradient(ellipse at top right,rgba(45,210,120,.06) 0%,transparent 70%);pointer-events:none}
+.co-tag-pill{font-size:10px;font-family:var(--mono);color:var(--green);background:var(--greendim);border:1px solid var(--border2);padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:10px;text-transform:uppercase;letter-spacing:.8px}
+.co-nm{font-family:var(--display);font-size:clamp(22px,3vw,34px);font-weight:700;letter-spacing:-.3px;margin-bottom:5px}
+.co-mt{font-size:12px;color:var(--text3);font-family:var(--mono)}
+.cbadge{display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:30px;font-size:12px;font-family:var(--mono);font-weight:500;flex-shrink:0}
+.cb-dot{width:8px;height:8px;border-radius:50%}
+.cb-low{background:rgba(45,210,120,.12);color:#2dd278;border:1px solid rgba(45,210,120,.25)}
+.cb-med{background:rgba(240,165,0,.12);color:#f0a500;border:1px solid rgba(240,165,0,.25)}
+.cb-high{background:rgba(240,80,80,.12);color:#f05050;border:1px solid rgba(240,80,80,.25)}
+.sc-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
+.sc-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:24px;position:relative;overflow:hidden}
+.sc-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.sc-a::after{background:linear-gradient(90deg,var(--green),transparent)}
+.sc-b::after{background:linear-gradient(90deg,#5DCAA5,transparent)}
+.sc-lbl{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.sc-lbl-dot{width:7px;height:7px;border-radius:2px}
+.sc-a .sc-lbl-dot{background:var(--green)}
+.sc-b .sc-lbl-dot{background:#5DCAA5}
+.sc-num{font-family:var(--display);font-size:52px;font-weight:700;line-height:1;margin-bottom:10px;letter-spacing:-1px}
+.sc-denom{font-size:20px;color:var(--text3);font-weight:400}
+.sc-grade{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-family:var(--mono);padding:4px 11px;border-radius:20px;margin-bottom:12px}
+.g-excellent{background:rgba(45,210,120,.12);color:#2dd278}
+.g-good{background:rgba(45,210,120,.08);color:#1a9e58}
+.g-moderate{background:rgba(240,165,0,.1);color:#f0a500}
+.g-risk{background:rgba(240,80,80,.1);color:#f05050}
+.sc-desc{font-size:11px;color:var(--text3);font-family:var(--mono);line-height:1.6}
+.sum-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:22px 26px;margin-bottom:22px;font-size:14px;line-height:1.8;color:var(--text2)}
+.sec-ttl{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin:28px 0 14px;display:flex;align-items:center;gap:10px}
+.sec-ttl::after{content:'';flex:1;height:1px;background:var(--border)}
+.mets-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 32px}
+.met-row{padding:11px 0;border-bottom:1px solid var(--border)}
+.met-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.met-nm{font-size:12px;color:var(--text2);font-family:var(--mono)}
+.met-set{font-size:9px;color:var(--text3);margin-left:4px}
+.met-val{font-size:14px;font-weight:600;font-family:var(--display)}
+.met-track{height:4px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.met-fill{height:100%;border-radius:3px;transition:width .9s cubic-bezier(.4,0,.2,1)}
+.con-box{border-radius:var(--rl);padding:18px 22px;display:flex;gap:14px;align-items:flex-start;margin-bottom:4px}
+.con-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.con-ttl{font-size:12px;font-family:var(--mono);font-weight:500;margin-bottom:5px}
+.con-txt{font-size:13px;color:var(--text2);line-height:1.7}
+.sdg-row{display:flex;flex-wrap:wrap;gap:8px}
+.sdg-pill{padding:6px 12px;border-radius:8px;font-size:11px;font-family:var(--mono);color:#fff;font-weight:500}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:8px}
+.tag-s{background:rgba(45,210,120,.06);border:1px solid rgba(45,210,120,.15);color:var(--green);font-size:12px;padding:7px 14px;border-radius:9px;font-family:var(--mono);display:flex;align-items:center;gap:7px}
+.tag-r{background:rgba(240,80,80,.06);border:1px solid rgba(240,80,80,.15);color:#f07070;font-size:12px;padding:7px 14px;border-radius:9px;font-family:var(--mono);display:flex;align-items:center;gap:7px}
+.ch-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px}
+.ch-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:22px}
+.ch-lbl{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px}
+.ch-leg{display:flex;gap:16px;margin-top:12px}
+.ch-leg-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text3);font-family:var(--mono)}
+.ch-leg-sq{width:12px;height:3px;border-radius:2px}
+.rag-ft{margin-top:28px;background:var(--greendim);border:1px solid var(--border2);border-radius:var(--r);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:11px;font-family:var(--mono);color:var(--text3)}
+.rag-ft strong{color:var(--green);font-weight:500}
+.back-b{display:inline-flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:11px 22px;border-radius:var(--r);font-size:12px;font-family:var(--mono);cursor:pointer;margin-top:28px;transition:all .2s}
+.back-b:hover{border-color:var(--green);color:var(--green)}
+@keyframes fu{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.s1{animation:fu .5s .05s ease both}.s2{animation:fu .5s .1s ease both}.s3{animation:fu .5s .15s ease both}
+.s4{animation:fu .5s .2s ease both}.s5{animation:fu .5s .25s ease both}.s6{animation:fu .5s .3s ease both}
+@media(max-width:640px){
+  .sc-row{grid-template-columns:1fr}
+  .mets-grid{grid-template-columns:1fr}
+  .ch-row{grid-template-columns:1fr}
+  .co-hero{padding:20px}
+  .sc-num{font-size:40px}
+  .site-hdr{flex-direction:column;align-items:flex-start;gap:14px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="site-hdr">
+  <div class="logo">
+    <div class="logo-mk">
+      <svg viewBox="0 0 22 22" fill="none">
+        <path d="M11 2L4 6.5v9L11 20l7-4.5v-9L11 2z" stroke="#060c08" stroke-width="1.6" fill="none"/>
+        <path d="M11 8v5M8 9.5l3 1.5 3-1.5" stroke="#060c08" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-nm">NEXT-GEN</div>
+      <div class="logo-sb">ESG Intelligence</div>
+    </div>
+  </div>
+  <div class="live-b"><div class="live-dot"></div>AI Engine Active</div>
+</header>
+<div class="search-sec" id="search-sec">
+  <div class="eyebrow">Dual-Metric ESG Analysis</div>
+  <h1>Analyze any company's<br><span>ESG profile</span> instantly.</h1>
+  <p class="sub">Fact-verified scores across 8 metrics — ESG, SDG alignment, Scope 3 emissions, biodiversity risk, controversy index, and double materiality for any company worldwide.</p>
+  <div class="sbox">
+    <input id="ci" class="sinp" type="text" placeholder="Type any company — Infosys, Shell, Zomato, SpaceX, Nestlé..."/>
+    <button class="sbtn" onclick="go()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="#060c08" stroke-width="1.5"/><path d="M10.5 10.5L14 14" stroke="#060c08" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Analyze
+    </button>
+  </div>
+  <div class="chips-lbl">Quick analysis →</div>
+  <div class="chips">
+    <div class="chip" onclick="q('Infosys')">Infosys</div>
+    <div class="chip" onclick="q('Wipro')">Wipro</div>
+    <div class="chip" onclick="q('ONGC')">ONGC</div>
+    <div class="chip" onclick="q('Zomato')">Zomato</div>
+    <div class="chip" onclick="q('Reliance Industries')">Reliance</div>
+    <div class="chip" onclick="q('Tata Motors')">Tata Motors</div>
+    <div class="chip" onclick="q('HDFC Bank')">HDFC Bank</div>
+    <div class="chip" onclick="q('BP')">BP</div>
+    <div class="chip" onclick="q('Shell')">Shell</div>
+    <div class="chip" onclick="q('Unilever')">Unilever</div>
+    <div class="chip" onclick="q('Nestle')">Nestlé</div>
+    <div class="chip" onclick="q('Samsung')">Samsung</div>
+    <div class="chip" onclick="q('Patagonia')">Patagonia</div>
+    <div class="chip" onclick="q('SpaceX')">SpaceX</div>
+    <div class="chip" onclick="q('Apple')">Apple</div>
+    <div class="chip" onclick="q('Microsoft')">Microsoft</div>
+    <div class="chip" onclick="q('Tesla')">Tesla</div>
+    <div class="chip" onclick="q('Amazon')">Amazon</div>
+    <div class="chip" onclick="q('Google')">Google</div>
+    <div class="chip" onclick="q('Saudi Aramco')">Saudi Aramco</div>
+    <div class="chip" onclick="q('Byjus')">Byju's</div>
+    <div class="chip" onclick="q('Ola')">Ola</div>
+    <div class="chip" onclick="q('Swiggy')">Swiggy</div>
+    <div class="chip" onclick="q('Adani Group')">Adani</div>
+    <div class="chip" onclick="q('Mahindra')">Mahindra</div>
+    <div class="chip" onclick="q('NTPC')">NTPC</div>
+    <div class="chip" onclick="q('ITC')">ITC</div>
+    <div class="chip" onclick="q('Walmart')">Walmart</div>
+    <div class="chip" onclick="q('Nike')">Nike</div>
+    <div class="chip" onclick="q('Volkswagen')">Volkswagen</div>
+  </div>
+</div>
+<div class="loading" id="loading">
+  <div class="ring"></div>
+  <div class="lco" id="lco"></div>
+  <div class="lstp" id="lstp">Initializing...</div>
+</div>
+<div class="results" id="results">
+  <div class="co-hero s1">
+    <div>
+      <div class="co-tag-pill" id="r-tag"></div>
+      <div class="co-nm" id="r-name"></div>
+      <div class="co-mt" id="r-meta"></div>
+    </div>
+    <div id="r-badge"></div>
+  </div>
+  <div class="sc-row s2">
+    <div class="sc-card sc-a">
+      <div class="sc-lbl"><div class="sc-lbl-dot"></div>Set A · Traditional + Financial</div>
+      <div class="sc-num" id="r-sa"></div>
+      <div class="sc-grade" id="r-sa-g"></div>
+      <div class="sc-desc">ESG Score · SDG Alignment<br>Financial Materiality · Controversy Index</div>
+    </div>
+    <div class="sc-card sc-b">
+      <div class="sc-lbl"><div class="sc-lbl-dot"></div>Set B · Impact + Real-time</div>
+      <div class="sc-num" id="r-sb"></div>
+      <div class="sc-grade" id="r-sb-g"></div>
+      <div class="sc-desc">Double Materiality · Scope 3<br>Biodiversity · RT Controversy</div>
+    </div>
+  </div>
+  <div class="sum-card s3" id="r-sum"></div>
+  <div class="sec-ttl s3">Metric breakdown — 8 dual-metric dimensions</div>
+  <div class="mets-grid s3" id="r-bars"></div>
+  <div class="sec-ttl s4">Controversy signal</div>
+  <div class="s4" id="r-con"></div>
+  <div class="sec-ttl s4">SDG alignment</div>
+  <div class="sdg-row s4" id="r-sdg"></div>
+  <div class="sec-ttl s5">Strengths &amp; ESG risks</div>
+  <div class="tags-wrap s5" id="r-tags"></div>
+  <div class="sec-ttl s5">Score visualisation</div>
+  <div class="ch-row s5">
+    <div class="ch-card">
+      <div class="ch-lbl">Radar — all dimensions</div>
+      <div style="position:relative;height:220px"><canvas id="rc" role="img" aria-label="ESG radar chart">ESG radar</canvas></div>
+      <div class="ch-leg">
+        <div class="ch-leg-item"><div class="ch-leg-sq" style="background:#2dd278"></div>Set A — Traditional</div>
+        <div class="ch-leg-item"><div class="ch-leg-sq" style="background:#5DCAA5"></div>Set B — Impact</div>
+      </div>
+    </div>
+    <div class="ch-card">
+      <div class="ch-lbl">Bar — all metric scores</div>
+      <div style="position:relative;height:240px"><canvas id="bc" role="img" aria-label="ESG bar chart">ESG bar</canvas></div>
+    </div>
+  </div>
+  <div class="rag-ft s6">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="color:var(--green);flex-shrink:0"><path d="M8 1l2 4h4l-3 3 1 4-4-2.5L4 12l1-4L2 5h4L8 1z" fill="currentColor" opacity=".8"/></svg>
+    <span><strong>Live AI Analysis</strong> — Powered by Groq Llama 3.3 · Real-time news scraping · ESG knowledge base</span>
+  </div>
+  <button class="back-b s6" onclick="reset()">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Analyze another company
+  </button>
+</div>
+</div>
+<script>
+// ── LIVE BACKEND ─────────────────────────────────────────
+const BACKEND_URL = "https://divyaa5-esg.hf.space";
+async function analyzeLive(companyName) {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/analyze`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ company: companyName })
+    });
+    if (!response.ok) throw new Error("Backend error");
+    return await response.json();
+  } catch (error) {
+    console.error("Live analysis failed:", error);
+    return null;
+  }
+}
+// ─────────────────────────────────────────────────────────
+
+const SDG_C={1:'#E5243B',2:'#DDA63A',3:'#4C9F38',4:'#C5192D',5:'#FF3A21',6:'#26BDE2',7:'#FCC30B',8:'#A21942',9:'#FD6925',10:'#DD1367',11:'#FD9D24',12:'#BF8B2E',13:'#3F7E44',14:'#0A97D9',15:'#56C02B',16:'#00689D',17:'#19486A'};
+let RC=null,BC=null;
+const DB={
+infosys:{n:'Infosys Limited',t:'INFY',s:'Technology · IT Services',a:81,b:78,c:84,d:79,e:74,f:68,g:72,h:82,cl:'low',cs:'Infosys has minimal controversy with strong governance practices. Minor US visa concerns noted but do not materially affect ESG standing.',sg:[4,8,9,10,13,17],sm:'Infosys achieved carbon neutrality in 2020 ahead of schedule and targets net-zero by 2040. The ESG360 platform and digital equity programs strongly support SDGs 4, 8, and 10. Scope 3 from client travel and data centers is monitored. Widely regarded as the ESG leader among Indian IT companies.',st:['Carbon neutral since 2020 — ahead of schedule','ESG360 digital sustainability platform','Strong board diversity and governance'],ri:['High attrition affecting social score','Client-side Scope 3 hard to track','H-1B visa policy dependency']},
+wipro:{n:'Wipro Limited',t:'WIT',s:'Technology · IT Services',a:79,b:75,c:82,d:77,e:71,f:65,g:70,h:80,cl:'low',cs:'Wipro has a clean controversy record. A 2022 moonlighting dispute and minor labour concerns are resolved.',sg:[4,8,9,10,12,13],sm:'Wipro targets carbon neutrality by 2030 with GRI and TCFD-aligned reporting. Strong social programs including diversity and employee welfare initiatives. Scope 3 from business travel is the primary emissions challenge.',st:['Carbon neutral target 2030','GRI + TCFD aligned reporting','Strong community CSR programs'],ri:['Scope 3 from travel and supply chain','Moonlighting dispute friction','Revenue concentration risk']},
+unilever:{n:'Unilever PLC',t:'ULVR',s:'Consumer Goods · FMCG',a:78,b:74,c:65,d:82,e:71,f:52,g:63,h:62,cl:'medium',cs:"Greenwashing rulings in 2023 and ongoing palm oil, plastic packaging, and Ben & Jerry's controversy moderate scores.",sg:[2,3,5,6,8,12,13,15,17],sm:"Unilever leads FMCG on ESG disclosure with its Sustainable Living Plan targeting net-zero by 2039. Over 90% of carbon sits in agricultural supply chains. Biodiversity risk from palm oil and plastic packaging keeps impact scores moderate despite strong governance and social programs.",st:['Industry-leading ESG disclosure','Strong gender equality programs (SDG 5)','Science-based net-zero milestones'],ri:['Scope 3 agricultural supply chain','Palm oil deforestation risk','Greenwashing regulatory scrutiny']},
+ongc:{n:'Oil & Natural Gas Corporation',t:'ONGC.NS',s:'Energy · Oil & Gas',a:44,b:52,c:48,d:68,e:38,f:25,g:35,h:45,cl:'high',cs:'ONGC faces persistent criticism over offshore oil spills, methane flaring, and delayed BRSR compliance.',sg:[7,8,9,13],sm:'ONGC scores poorly on impact metrics due to fossil fuel dependency. A 10 GW renewable energy target by 2030 has been announced but progress is slow. Biodiversity risk from offshore drilling is significant. Financial materiality is supported by state backing.',st:['State-backed energy security','10 GW renewable energy target','Large-scale community employment'],ri:['Very high Scope 1/2/3 emissions','Offshore biodiversity and spill risk','Slow green transition']},
+zomato:{n:'Zomato Limited',t:'ZOMATO.NS',s:'Technology · Food Delivery',a:55,b:60,c:52,d:58,e:50,f:44,g:48,h:50,cl:'medium',cs:'Controversies around gig worker welfare and 2023 platform fee disputes.',sg:[2,8,9,11,12],sm:'Zomato is in early ESG maturity with improving disclosures. The delivery fleet generates significant Scope 3 emissions, with EV initiatives underway. Worker welfare for gig partners is the primary social risk. Food rescue programs align with SDG 2.',st:['Food rescue and surplus programs','EV fleet transition underway','Growing ESG disclosure quality'],ri:['Gig worker welfare gaps','High Scope 3 from delivery fleet','Platform governance disputes']},
+bp:{n:'BP plc',t:'BP',s:'Energy · Integrated Oil & Gas',a:42,b:48,c:35,d:65,e:36,f:22,g:32,h:33,cl:'high',cs:"BP reversed net-zero ambitions in 2023, cutting renewable targets. Deepwater Horizon legacy liabilities persist.",sg:[7,8,13],sm:"BP's 2023 pivot away from renewables severely damaged its ESG profile. Plans to increase oil output through 2030 contradict earlier Paris-aligned commitments. Among the highest Scope 3 emitters globally.",st:['Remaining wind and solar assets','Carbon capture R&D investment','Transparent TCFD Scope 3 accounting'],ri:['Reversed net-zero strategy','Top 5 global Scope 3 emitter','Deepwater Horizon governance legacy']},
+samsung:{n:'Samsung Electronics Co., Ltd.',t:'005930.KS',s:'Technology · Consumer Electronics',a:66,b:62,c:55,d:80,e:60,f:50,g:58,h:52,cl:'medium',cs:'Labour and union-busting allegations in Korean fabs. Lee family chaebol governance concerns persist.',sg:[4,8,9,10,12,13],sm:'Samsung scores well on financial materiality and tech contribution. Governance is dragged by chaebol ownership and labour controversies. RE100 commitment progress is slower than peers. Scope 3 from product use phase is enormous.',st:['RE100 committed — renewable transition','Energy-efficient product portfolio','Strong R&D in sustainable materials'],ri:['Chaebol governance structure risk','Labour rights controversies','Massive product-use Scope 3']},
+hdfc:{n:'HDFC Bank Limited',t:'HDFCBANK.NS',s:'Financial Services · Banking',a:70,b:68,c:72,d:78,e:64,f:62,g:60,h:70,cl:'low',cs:'Clean controversy record. 2020-21 RBI digital restrictions resolved. Strong governance culture.',sg:[1,8,9,10,11,13,17],sm:'HDFC Bank leads Indian banking on ESG with strong BRSR compliance and growing green finance. SDG 1 and 10 impact through financial inclusion is significant. Scope 3 financed emissions from carbon-intensive lending is the primary risk.',st:['Strong BRSR compliance','Growing green bond portfolio','Financial inclusion for rural India'],ri:['Scope 3 financed emissions','IT resilience and cyber risk','Limited biodiversity framework']},
+patagonia:{n:'Patagonia Inc.',t:'',s:'Retail · Outdoor Apparel',a:92,b:88,c:90,d:75,e:89,f:78,g:90,h:91,cl:'low',cs:'Patagonia is the global ESG benchmark. The 2022 ownership transfer to a climate trust is a landmark governance act.',sg:[1,12,13,14,15,17],sm:'Patagonia transferred ownership to a climate trust in 2022 so all profits fund environmental causes. B Corp certified, 1% for the Planet founding member. Worn Wear circular economy program addresses lifecycle emissions. Gold-standard ESG in every dimension.',st:['All profits fund climate causes','1% for the Planet founding member','B Corp — gold-standard certification'],ri:['Scope 3 from Asia manufacturing','Premium pricing limits mass impact','Growth may strain ethical sourcing']},
+nestle:{n:'Nestlé S.A.',t:'NESN',s:'Consumer Goods · Food & Beverages',a:56,b:60,c:42,d:74,e:52,f:38,g:44,h:40,cl:'high',cs:'Water extraction controversies, infant formula marketing issues, plastic pollution, and 2023 nutrition mislabelling findings.',sg:[2,3,6,8,12,13],sm:'Nestlé faces credibility gaps between ESG commitments and verified actions. Agricultural Scope 3 is among the largest in the food sector. Water controversies in drought-stressed regions and delayed plastic reduction commitments are primary concerns.',st:['Regenerative agriculture programs','Net Zero Roadmap with suppliers','Investment in alternative proteins'],ri:['Water extraction in drought regions','Scope 3 agricultural supply chain','Missed plastic reduction targets']},
+spacex:{n:'Space Exploration Technologies (SpaceX)',t:'',s:'Aerospace · Space Launch',a:40,b:52,c:38,d:60,e:42,f:30,g:35,h:36,cl:'high',cs:'Worker safety controversies, Starship environmental damage to Texas wetlands, CEO conduct ESG concerns.',sg:[9,11,17],sm:'SpaceX scores low due to limited disclosure, high propulsion emissions, and launch site environmental damage. Starlink enables SDG 17 global connectivity. Reusable rockets significantly reduce per-launch carbon.',st:['Reusable rocket technology','Starlink global internet access','Revolutionary cost reduction'],ri:['Rocket propellant emissions','Launch site environmental damage','Zero public ESG disclosures']},
+shell:{n:'Shell plc',t:'SHEL',s:'Energy · Integrated Oil & Gas',a:45,b:50,c:38,d:68,e:38,f:24,g:34,h:35,cl:'high',cs:'Lost 2021 Dutch court climate ruling. Sustained greenwashing criticism and climate policy lobbying.',sg:[7,8,13],sm:'Shell is among the highest Scope 3 emitters globally. The Dutch court case set global precedent for corporate climate accountability. Transition strategy is viewed as insufficient relative to Paris pathways.',st:['LNG and low-carbon investment','Carbon capture R&D leadership','Transparent TCFD Scope 3 reporting'],ri:['Top 5 global Scope 3 emitter','Climate litigation precedent','Greenwashing perception gap']},
+reliance:{n:'Reliance Industries Limited',t:'RELIANCE.NS',s:'Conglomerate · Petrochem & Telecom',a:48,b:55,c:50,d:74,e:42,f:28,g:38,h:48,cl:'medium',cs:'Petrochemical operations, plastic production, coastal biodiversity concerns, and manufacturing labour scrutiny.',sg:[7,8,9,11,13],sm:"Reliance is transitioning with $75B New Energy investment in green hydrogen, solar, and batteries. Current revenue is fossil-fuel heavy. Jio's digital inclusion supports SDG 9 and 10 across 450M+ rural subscribers. CSRD gaps remain.",st:['$75B green energy investment','Jio — 450M+ rural subscribers','Solar giga-factory pipeline'],ri:['Petrochemical Scope 1/2/3 emissions','Plastic production and marine risk','CSRD and TNFD alignment gaps']},
+apple:{n:'Apple Inc.',t:'AAPL',s:'Technology · Consumer Electronics',a:79,b:74,c:71,d:85,e:68,f:61,g:70,h:74,cl:'low',cs:'Minor App Store antitrust scrutiny and Foxconn supplier labour conditions within the compliance framework.',sg:[8,9,10,12,13,17],sm:'Apple achieved carbon neutral operations and targets supply chain net-zero by 2030. 16+ GW of renewable energy deployed globally. Recycled materials usage increases annually. Governance and disclosure quality are best-in-class.',st:['Carbon neutral operations achieved','16+ GW renewable energy in supply chain','Best-in-class ESG disclosure and TCFD'],ri:['Supplier Scope 3 — Foxconn emissions','App Store antitrust risk','E-waste and lifecycle impact']},
+tesla:{n:'Tesla, Inc.',t:'TSLA',s:'Automotive · Electric Vehicles',a:72,b:78,c:52,d:69,e:75,f:44,g:62,h:41,cl:'medium',cs:'CEO conduct controversies, workplace safety at Fremont, union suppression allegations, battery mining environmental concerns.',sg:[7,9,11,13],sm:'Tesla is the global EV transition leader directly enabling SDG 13 decarbonization. Energy storage and solar support SDG 7. Governance is impacted by CEO controversies and board independence concerns. Battery supply chain raises biodiversity and human rights risks.',st:['EV market leader — SDG 13 impact','Gigafactory renewable energy','Grid-level energy storage'],ri:['CEO governance and board independence','Cobalt and lithium mining impact','Union suppression controversies']},
+amazon:{n:'Amazon.com, Inc.',t:'AMZN',s:'E-Commerce · Cloud & Logistics',a:51,b:58,c:38,d:71,e:49,f:33,g:44,h:29,cl:'high',cs:'Worker welfare controversies, injury rates, union suppression, ongoing EU and US antitrust actions.',sg:[8,9,13],sm:'Amazon Climate Pledge targets net-zero 2040 with 100,000 electric vans deployed. AWS renewable energy gains are real positives. Logistics Scope 3 is enormous. Worker welfare in fulfillment centers is the primary social ESG drag.',st:['Climate Pledge — 100,000 electric vans','AWS renewable energy efficiency','Climate Pledge Fund investments'],ri:['Worker safety in fulfillment centers','Massive logistics Scope 3','Union suppression and labour rights']},
+microsoft:{n:'Microsoft Corporation',t:'MSFT',s:'Technology · Cloud, Software & AI',a:86,b:82,c:88,d:91,e:80,f:69,g:74,h:85,cl:'low',cs:'Largely clean record. AI ethics and data center water consumption are emerging monitored risks.',sg:[4,7,9,10,13,17],sm:'Microsoft is the ESG leader in Big Tech: carbon negative by 2030, water positive, and zero waste. AI for Good and digital skills programs align with SDG 4 and 10. AI compute energy consumption is the growing emerging risk.',st:['Carbon negative pledge by 2030','Water positive + zero waste targets','AI for Good — 1B people empowerment'],ri:['AI compute energy growing rapidly','Data center water in drought regions','Scope 3 from enterprise cloud']},
+google:{n:'Alphabet Inc. (Google)',t:'GOOGL',s:'Technology · Search & Cloud',a:80,b:76,c:62,d:88,e:72,f:63,g:68,h:60,cl:'medium',cs:'Ongoing antitrust investigations in US, EU, and India. AI ethics controversies around biased outputs.',sg:[4,7,9,10,13,17],sm:'Google matched 100% electricity with renewables since 2017, targeting 24/7 carbon-free by 2030. Environmental AI tools create genuine SDG 13 impact. Antitrust risk and AI ethics are significant governance challenges.',st:['100% renewable matched since 2017','24/7 carbon-free target 2030','Environmental AI tools for public good'],ri:['Antitrust risk across US, EU, India','AI ethics and governance gaps','Scope 3 from data center hardware']},
+tatamotors:{n:'Tata Motors Limited',t:'TATAMOTORS.NS',s:'Automotive · Vehicles & EV',a:64,b:70,c:68,d:65,e:60,f:52,g:58,h:65,cl:'low',cs:'Largely positive record. JLR EV transition pace and Tata Steel UK emissions attract some regulatory attention.',sg:[3,8,9,11,13],sm:'Tata Motors leads Indian EV with Nexon, Tiago, and Punch EV. JLR committed all-electric from 2025. Strong BRSR compliance. Steel Scope 3 and JLR transition period are primary current risks.',st:['Leading Indian EV portfolio','JLR all-electric commitment 2025','Strong BRSR and Tata ESG culture'],ri:['JLR ICE transition emissions','Tata Steel UK Scope 3 intensity','Battery mineral supply chain']},
+saudiaramco:{n:'Saudi Aramco',t:'2222.SR',s:'Energy · National Oil Company',a:36,b:42,c:30,d:70,e:30,f:18,g:28,h:28,cl:'high',cs:"World's largest single corporate carbon source. Human rights concerns via state ownership. No Paris-aligned plan.",sg:[7,8],sm:"Saudi Aramco is the world's highest Scope 3 emitting listed company. No credible net-zero roadmap. Structural misalignment with a net-zero world is definitive. Human rights concerns via state ownership add governance complexity.",st:['Lowest-cost per-barrel production','Methane flaring reduction program','Domestic clean energy via NEOM'],ri:["World's largest Scope 3 emitter",'No net-zero transition plan','Human rights via state ownership']},
+byjus:{n:"Byju's (Think & Learn Pvt. Ltd.)",t:'',s:'EdTech · Online Education',a:35,b:55,c:18,d:30,e:42,f:55,g:50,h:15,cl:'high',cs:"Accounting fraud allegations, FEMA violations, insolvency proceedings 2024, 25,000+ employee layoffs.",sg:[4,10],sm:"Byju's aligns with SDG 4 education but governance failure has been catastrophic. Accounting irregularities, investor lawsuits, and 2024 insolvency proceedings make it a global case study in ESG governance collapse.",st:['SDG 4 education mission','Low carbon digital platform','Tier 2/3 India reach — SDG 10'],ri:['Insolvency and accounting fraud','FEMA violations and lawsuits','25,000+ employees affected']},
+ola:{n:'Ola (ANI Technologies Pvt. Ltd.)',t:'',s:'Technology · Ride-hailing & EV',a:50,b:57,c:45,d:52,e:48,f:40,g:46,h:44,cl:'medium',cs:'Driver welfare controversies, safety incidents, and regulatory scrutiny across Indian urban markets.',sg:[8,9,11,13],sm:'Ola is transitioning toward EV with Ola Electric and fleet electrification. Driver welfare is the primary social risk. SDG 11 urban mobility is a genuine positive. ESG disclosure is improving.',st:['Ola Electric — domestic EV manufacturing','SDG 11 urban mobility impact','Fleet electrification program'],ri:['Driver and gig worker welfare gaps','Battery safety — scooter fire incidents','Early-stage ESG disclosure maturity']},
+swiggy:{n:'Swiggy (Bundl Technologies Pvt. Ltd.)',t:'SWIGGY.NS',s:'Technology · Food Delivery',a:53,b:58,c:50,d:55,e:49,f:42,g:47,h:49,cl:'medium',cs:'Gig worker welfare and delivery partner conditions are primary controversy areas.',sg:[2,8,9,11,12],sm:'Swiggy is building ESG practices post-IPO with food rescue and surplus programs. Quick commerce reduces food waste. Delivery fleet Scope 3 requires EV transition. Worker welfare for gig partners is the primary challenge.',st:['Food rescue redistribution programs','Growing ESG disclosure post-IPO','Quick commerce reducing supply waste'],ri:['Gig worker welfare and protection','Delivery fleet Scope 3 emissions','ESG commitments early-stage']},
+adani:{n:'Adani Group',t:'ADANIENT.NS',s:'Conglomerate · Ports, Energy & Infra',a:38,b:45,c:22,d:65,e:35,f:20,g:32,h:20,cl:'high',cs:'2023 Hindenburg report alleged stock manipulation and accounting fraud. Coal expansion and Carmichael mine controversies.',sg:[7,8,9,11,13],sm:"Adani Group has major credibility issues post-Hindenburg 2023. Coal business contradicts green energy investments. However Adani Green Energy is one of India's largest renewable developers.",st:["Adani Green — largest Indian solar developer",'Port infrastructure — SDG 9 trade','Massive renewable capacity pipeline'],ri:['Hindenburg governance allegations','Coal contradicting green claims','Carmichael mine biodiversity impact']},
+mahindra:{n:'Mahindra & Mahindra Limited',t:'M&M.NS',s:'Conglomerate · Auto, Agri & IT',a:66,b:68,c:70,d:68,e:62,f:55,g:60,h:67,cl:'low',cs:'Clean controversy record. Minor SUV emission concerns and tractor supply chain scrutiny.',sg:[2,3,8,9,11,13],sm:'Mahindra scores well with its Rise for Good sustainability framework. Strong EV push with XEV and BE series. Farm equipment supports SDG 2. ESG disclosure improving toward BRSR Core compliance.',st:['Rise for Good sustainability framework','EV portfolio — XEV and BE series','Agri-tech supporting SDG 2'],ri:['SUV and tractor fleet Scope 3','Agricultural machinery emissions','Conglomerate ESG coherence gaps']},
+ntpc:{n:'NTPC Limited',t:'NTPC.NS',s:'Energy · Power Generation',a:50,b:55,c:55,d:65,e:45,f:22,g:40,h:52,cl:'medium',cs:'Criticism over coal plant emissions, fly ash disposal, and community displacement near thermal plants.',sg:[7,8,9,13],sm:'NTPC is transitioning toward 60 GW renewable capacity by 2032. Coal still dominates revenue creating ESG tension. Community displacement near thermal plants is a social concern. BRSR compliance is among the best in Indian PSUs.',st:['60 GW renewable target by 2032','BRSR compliance — best in PSUs','Community development programs'],ri:['Coal generation — high Scope 1/2','Fly ash disposal and pollution','Community displacement concerns']},
+itc:{n:'ITC Limited',t:'ITC.NS',s:'Conglomerate · FMCG, Hotels & Agri',a:72,b:70,c:68,d:76,e:65,f:58,g:63,h:66,cl:'low',cs:'Clean record overall. Tobacco business creates inherent ESG tension but non-cigarette revenue is growing.',sg:[2,3,8,9,12,13,15],sm:'ITC is carbon-positive, water-positive, and solid waste-recycling-positive — a rare triple achievement. eChoupal empowers 4 million farmers. The tobacco business creates an inherent SDG 3 conflict.',st:['Triple positive: carbon, water, waste','eChoupal — 4M farmer empowerment','Non-FMCG revenue diversification'],ri:['Tobacco — SDG 3 health conflict','Agricultural supply chain Scope 3','Paper manufacturing water intensity']},
+walmart:{n:'Walmart Inc.',t:'WMT',s:'Retail · General Merchandise',a:62,b:65,c:55,d:78,e:58,f:45,g:52,h:54,cl:'medium',cs:'Ongoing controversies around supplier labour conditions, worker wages, and gender pay gap lawsuits.',sg:[1,2,8,9,12,13],sm:'Walmart has made significant commitments through Project Gigaton targeting 1 billion metric ton supply chain emission reduction. Renewable energy procurement is growing. Worker wage controversies and supplier conditions remain significant social ESG drags.',st:['Project Gigaton — 1B tonne reduction','Growing renewable energy in operations','Scale enabling massive sustainable sourcing'],ri:['Worker wages and gender pay gap','Supplier labour in developing countries','Food waste across massive retail footprint']},
+nike:{n:'Nike, Inc.',t:'NKE',s:'Retail · Sportswear & Footwear',a:65,b:62,c:55,d:76,e:58,f:45,g:55,h:52,cl:'medium',cs:'Longstanding supply chain labour controversies in Asian factories. Workplace culture and gender equity lawsuits in US.',sg:[3,8,10,12,13],sm:'Nike has made moves on circularity with Space Hippie recycled products and Move to Zero target. Supply chain labour controversies in Vietnam, Indonesia, and Cambodia are persistent ESG challenges.',st:['Move to Zero carbon commitment','Space Hippie — recycled waste products','Circular economy and repair programs'],ri:['Supply chain labour in Asia','Scope 3 from offshore manufacturing','Athlete endorsement governance']},
+volkswagen:{n:'Volkswagen AG',t:'VOW3.DE',s:'Automotive · Vehicles & EV',a:55,b:60,c:40,d:68,e:55,f:42,g:50,h:40,cl:'high',cs:'Dieselgate emissions cheating scandal (2015) remains the defining ESG governance failure. Ongoing litigation continues.',sg:[9,11,13],sm:'Volkswagen is investing massively in EV transition with ID series targeting 70% electric sales in Europe by 2030. The Dieselgate scandal remains a permanent governance black mark. Scope 3 from 9M+ annual vehicle sales is enormous.',st:['Largest EV investment in automotive','ID series EV portfolio expansion','Battery gigafactory development in Europe'],ri:['Dieselgate governance — permanent damage','Scope 3 from 9M+ annual vehicle sales','Battery supply chain labour and minerals']}
+};
+function norm(k){return k.toLowerCase().replace(/[^a-z0-9]/g,'').replace(/(limited|ltd|plc|inc|corp|pvt|llc|group|holdings|technologies|company|co|enterprises)$/g,'').trim();}
+function find(inp){
+  const n=norm(inp),keys=Object.keys(DB);
+  for(const k of keys){if(norm(k)===n||norm(DB[k].n)===n)return DB[k];}
+  for(const k of keys){if(n.includes(norm(k))||norm(k).includes(n)||n.includes(norm(DB[k].n).slice(0,6))||norm(DB[k].n).includes(n))return DB[k];}
+  return null;
+}
+function gen(nm){
+  const secs=[
+    {kw:['bank','finance','insurance','nbfc','payment','capital','invest','credit'],s:'Financial Services · Banking',b:65,sg:[1,8,9,10,17],cl:'low'},
+    {kw:['oil','gas','petrol','refin','coal','mine','mining','fossil'],s:'Energy · Fossil Fuels',b:38,sg:[7,8,13],cl:'high'},
+    {kw:['solar','wind','renew','green','clean','hydro','biofuel'],s:'Energy · Renewables',b:78,sg:[7,9,11,13],cl:'low'},
+    {kw:['tech','software','it','digital','cloud','saas','ai','data','cyber','app'],s:'Technology · Software & Digital',b:70,sg:[4,8,9,10,17],cl:'low'},
+    {kw:['pharma','drug','medic','health','hospital','biotech'],s:'Healthcare · Pharma & Biotech',b:62,sg:[3,8,9,10],cl:'medium'},
+    {kw:['food','beverage','fmcg','consumer','retail','grocery'],s:'Consumer Goods · FMCG',b:56,sg:[2,3,8,12,13],cl:'medium'},
+    {kw:['auto','car','vehicle','motor','truck','ev','electric'],s:'Automotive & Mobility',b:60,sg:[9,11,13],cl:'medium'},
+    {kw:['real','estate','property','construct','infra','build','cement'],s:'Real Estate & Infrastructure',b:54,sg:[9,11,13],cl:'medium'},
+    {kw:['telecom','mobile','network','broadband','wireless'],s:'Telecommunications',b:64,sg:[9,10,17],cl:'low'},
+    {kw:['airline','aviation','airport','fly','air'],s:'Aviation & Aerospace',b:45,sg:[9,11,13],cl:'medium'},
+    {kw:['steel','metal','alumin','copper','cement','material','iron'],s:'Materials & Industrials',b:42,sg:[9,11,13],cl:'high'},
+    {kw:['edu','school','college','learn','edtech','course'],s:'Education & EdTech',b:68,sg:[4,8,10],cl:'low'},
+    {kw:['textile','garment','fashion','apparel','wear'],s:'Apparel & Textiles',b:52,sg:[8,12,13],cl:'medium'},
+    {kw:['hotel','hospitality','travel','tourism','restaurant'],s:'Hospitality & Tourism',b:58,sg:[8,11,12,13],cl:'low'},
+    {kw:['media','entertainment','content','film','stream'],s:'Media & Entertainment',b:60,sg:[4,16,17],cl:'medium'},
+    {kw:['agri','farm','agriculture','crop','seed'],s:'Agriculture & Agri-tech',b:55,sg:[2,3,12,13,15],cl:'medium'},
+  ];
+  const ln=nm.toLowerCase();
+  let m=null;
+  for(const s of secs){if(s.kw.some(k=>ln.includes(k))){m=s;break;}}
+  if(!m)m={s:'Diversified · Multi-sector',b:58,sg:[8,9,13],cl:'medium'};
+  const bv=m.b,v=x=>Math.min(95,Math.max(15,Math.round(x+(Math.random()*12-6))));
+  const a=v(bv),b=v(bv-3),c=v(bv+2),d=v(bv+6),e=v(bv-7),f=v(bv-15),g=v(bv-10),h=v(bv-4);
+  const sA=Math.round((a+b+c+d)/4),sB=Math.round((e+f+g+h)/4);
+  const cl=m.cl;
+  const ct={low:`${nm} maintains a relatively clean controversy record with standard sector governance. No major ESG incidents reported recently.`,medium:`${nm} faces moderate ESG scrutiny typical of its industry with some supply chain and environmental compliance concerns.`,high:`${nm} operates in a high-controversy sector with significant environmental and social exposure. Regulatory pressure is elevated.`};
+  const st2={low:`${nm} demonstrates above-average ESG performance for its sector with improving disclosure quality and clear sustainability commitments. SDG alignment is strong. Governance structures are sound. Scope 3 measurement is the primary development area.`,medium:`${nm} shows moderate ESG performance with mixed results across E, S, and G dimensions. Sustainability commitments are in place but verification needs strengthening. Supply chain emissions require greater disclosure.`,high:`${nm} faces material ESG risks linked to its sector's significant environmental footprint. Core activities generate substantial emissions. Credibility gaps between stated ambitions and verified actions exist.`};
+  return{n:nm,t:'',s:m.s,a,b,c,d,e,f,g,h,cl,cs:ct[cl],sg:m.sg,sm:st2[cl],sA,sB,st:['Sector-relevant sustainability initiatives in place','ESG disclosure quality improving annually','SDG-aligned community programs active'],ri:['Scope 3 supply chain emissions measurement gaps','Biodiversity impact monitoring needs strengthening','ESG regulatory compliance pressure increasing']};
+}
+function sco(v){return v>=70?'#2dd278':v>=45?'#f0a500':'#f05050'}
+function gcl(v){return v>=75?'g-excellent':v>=60?'g-good':v>=45?'g-moderate':'g-risk'}
+function gw(v){return v>=75?'Excellent':v>=60?'Good':v>=45?'Moderate':'At Risk'}
+function render(d){
+  document.getElementById('search-sec').style.display='none';
+  document.getElementById('loading').className='loading';
+  document.getElementById('results').className='results on';
+  document.getElementById('r-tag').textContent=d.s;
+  document.getElementById('r-name').textContent=d.n;
+  document.getElementById('r-meta').textContent=(d.t?d.t+' · ':'')+d.s;
+  const cl=d.cl;
+  const bm={low:['cb-low','#2dd278','Low Controversy Risk'],medium:['cb-med','#f0a500','Medium Controversy Risk'],high:['cb-high','#f05050','High Controversy Risk']};
+  const [bc2,dc,bt]=bm[cl]||bm.medium;
+  document.getElementById('r-badge').className='cbadge '+bc2;
+  document.getElementById('r-badge').innerHTML=`<div class="cb-dot" style="background:${dc}"></div>${bt}`;
+  const sA=d.sA||Math.round((d.a+d.b+d.c+d.d)/4);
+  const sB=d.sB||Math.round((d.e+d.f+d.g+d.h)/4);
+  document.getElementById('r-sa').innerHTML=`<span style="color:${sco(sA)}">${sA}</span><span class="sc-denom">/100</span>`;
+  document.getElementById('r-sb').innerHTML=`<span style="color:${sco(sB)}">${sB}</span><span class="sc-denom">/100</span>`;
+  document.getElementById('r-sa-g').className='sc-grade '+gcl(sA);document.getElementById('r-sa-g').textContent=gw(sA);
+  document.getElementById('r-sb-g').className='sc-grade '+gcl(sB);document.getElementById('r-sb-g').textContent=gw(sB);
+  document.getElementById('r-sum').textContent=d.sm;
+  const mets=[
+    {l:'ESG Score',v:d.a,set:'A'},{l:'SDG Alignment',v:d.b,set:'A'},
+    {l:'Financial Materiality',v:d.d,set:'A'},{l:'Controversy Index',v:d.c,set:'A'},
+    {l:'Double Materiality',v:d.e,set:'B'},{l:'Scope 3 Score',v:d.f,set:'B'},
+    {l:'Biodiversity Impact',v:d.g,set:'B'},{l:'RT Controversy',v:d.h,set:'B'},
+  ];
+  document.getElementById('r-bars').innerHTML=mets.map(m=>`<div class="met-row"><div class="met-top"><span class="met-nm">${m.l}<span class="met-set">·${m.set}</span></span><span class="met-val" style="color:${sco(m.v)}">${Math.round(m.v)}</span></div><div class="met-track"><div class="met-fill" style="width:${Math.round(m.v)}%;background:${sco(m.v)}"></div></div></div>`).join('');
+  const cm={low:['rgba(45,210,120,.08)','#2dd278','rgba(45,210,120,.2)'],medium:['rgba(240,165,0,.08)','#f0a500','rgba(240,165,0,.2)'],high:['rgba(240,80,80,.08)','#f05050','rgba(240,80,80,.2)']};
+  const [cbg,cc,cb]=cm[cl]||cm.medium;
+  document.getElementById('r-con').innerHTML=`<div class="con-box" style="background:${cbg};border:1px solid ${cb}"><div class="con-ic" style="background:${cb}"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="5.5" stroke="${cc}" stroke-width="1.5"/><path d="M7.5 4.5v3.5M7.5 10v.5" stroke="${cc}" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><div class="con-ttl" style="color:${cc}">${cl.toUpperCase()} CONTROVERSY RISK</div><div class="con-txt">${d.cs}</div></div></div>`;
+  document.getElementById('r-sdg').innerHTML=(d.sg||[]).map(n=>`<div class="sdg-pill" style="background:${SDG_C[n]||'#555'}">SDG ${n}</div>`).join('');
+  const tags=[];
+  (d.st||[]).forEach(s=>tags.push(`<div class="tag-s"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>${s}</div>`));
+  (d.ri||[]).forEach(r=>tags.push(`<div class="tag-r"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2.5v4M6 9v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>${r}</div>`));
+  document.getElementById('r-tags').innerHTML=tags.join('');
+  if(RC){RC.destroy();RC=null;}
+  if(BC){BC.destroy();BC=null;}
+  RC=new Chart(document.getElementById('rc'),{type:'radar',data:{labels:['ESG','SDG','Financial','Controversy','D.Mat','Scope 3','Biodiversity'],datasets:[{label:'Set A',data:[d.a,d.b,d.d,d.c,0,0,0],borderColor:'#2dd278',backgroundColor:'rgba(45,210,120,0.1)',pointBackgroundColor:'#2dd278',borderWidth:2,pointRadius:3},{label:'Set B',data:[0,0,0,d.h,d.e,d.f,d.g],borderColor:'#5DCAA5',backgroundColor:'rgba(93,202,165,0.07)',pointBackgroundColor:'#5DCAA5',borderWidth:2,borderDash:[4,3],pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{font:{size:9,family:'JetBrains Mono'},color:'rgba(138,171,148,.45)',stepSize:25,backdropColor:'transparent'},grid:{color:'rgba(45,210,120,0.07)'},pointLabels:{font:{size:10,family:'JetBrains Mono'},color:'rgba(138,171,148,.7)'},angleLines:{color:'rgba(45,210,120,0.07)'}}}}});
+  BC=new Chart(document.getElementById('bc'),{type:'bar',data:{labels:['ESG','SDG','Fin.Mat','Controversy','D.Mat','Scope 3','Biodiversity','RT Con'],datasets:[{data:mets.map(m=>Math.round(m.v)),backgroundColor:mets.map(m=>{const v=m.v;return v>=70?'rgba(45,210,120,0.7)':v>=45?'rgba(240,165,0,0.7)':'rgba(240,80,80,0.7)';}),borderColor:mets.map(m=>sco(m.v)),borderWidth:1,borderRadius:5,barThickness:15}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9,family:'JetBrains Mono'},color:'rgba(138,171,148,.55)'},grid:{color:'rgba(45,210,120,0.05)'},border:{color:'rgba(45,210,120,0.1)'}},y:{min:0,max:100,ticks:{font:{size:9,family:'JetBrains Mono'},color:'rgba(138,171,148,.55)'},grid:{color:'rgba(45,210,120,0.05)'},border:{color:'rgba(45,210,120,0.1)'}}}}});
+}
+async function go(){
+  const v=document.getElementById('ci').value.trim();
+  if(!v)return;
+  document.getElementById('search-sec').style.display='none';
+  document.getElementById('results').className='results';
+  document.getElementById('loading').className='loading on';
+  document.getElementById('lco').textContent=v;
+  const steps=['Scraping live ESG news...','Running sentiment analysis...','Retrieving RAG knowledge...','AI generating analysis...'];
+  let i=0;
+  document.getElementById('lstp').textContent=steps[0];
+  const iv=setInterval(()=>{if(++i<steps.length)document.getElementById('lstp').textContent=steps[i];},1200);
+  const liveData=await analyzeLive(v);
+  clearInterval(iv);
+  if(liveData&&!liveData.error){
+    const d={
+      n:liveData.company,t:liveData.ticker||'',s:liveData.sector,
+      a:liveData.esg_score,b:liveData.sdg_score,c:liveData.controversy_index,
+      d:liveData.financial_materiality,e:liveData.double_materiality,
+      f:liveData.scope3_score,g:liveData.biodiversity_score,
+      h:liveData.realtime_controversy,cl:liveData.controversy_level,
+      cs:liveData.controversy_summary,sg:liveData.sdg_goals,
+      sm:liveData.rag_summary,st:liveData.strengths,ri:liveData.risks,
+      sA:liveData.setA_total,sB:liveData.setB_total
+    };
+    render(d);
+  } else {
+    setTimeout(()=>{render(find(v)||gen(v));},800);
+  }
+}
+function q(nm){document.getElementById('ci').value=nm;go();}
+function reset(){
+  if(RC){RC.destroy();RC=null;}
+  if(BC){BC.destroy();BC=null;}
+  document.getElementById('results').className='results';
+  document.getElementById('loading').className='loading';
+  document.getElementById('search-sec').style.display='';
+  document.getElementById('ci').value='';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.getElementById('ci').addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+</script>
+</body>
+</html>
