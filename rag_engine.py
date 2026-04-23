@@ -6,10 +6,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 
-os.environ.setdefault("GROQ_API_KEY", "")
-os.environ.setdefault("NEWS_API_KEY", "")
-
-client = Groq(api_key=os.environ["GROQ_API_KEY"])
+client = Groq(api_key=os.getenv("GROQ_API_KEY", ""))
 
 ESG_KNOWLEDGE_BASE = [
     """ESG stands for Environmental, Social, and Governance. It evaluates
@@ -52,7 +49,8 @@ vector_store = None
 
 def initialize_rag():
     global embeddings_model, vector_store
-    print("Initializing RAG pipeline...")
+    if vector_store is not None:
+        return
     embeddings_model = HuggingFaceEmbeddings(
         model_name="all-MiniLM-L6-v2",
         model_kwargs={"device": "cpu"}
@@ -60,23 +58,19 @@ def initialize_rag():
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     documents = []
     for i, text in enumerate(ESG_KNOWLEDGE_BASE):
-        chunks = text_splitter.split_text(text)
-        for chunk in chunks:
+        for chunk in text_splitter.split_text(text):
             documents.append(Document(page_content=chunk, metadata={"source": f"esg_{i}"}))
     vector_store = FAISS.from_documents(documents, embeddings_model)
-    print("RAG pipeline ready.")
 
 def retrieve_context(query, k=3):
     global vector_store
     if vector_store is None:
         initialize_rag()
     docs = vector_store.similarity_search(query, k=k)
-    return "\n\n".join([doc.page_content for doc in docs])
+    return "\n\n".join(doc.page_content for doc in docs)
 
 def generate_esg_analysis(company_name, scraped_news, sentiment_data):
-    rag_context = retrieve_context(
-        f"ESG analysis {company_name} scope 3 SDG controversy"
-    )
+    rag_context = retrieve_context(f"ESG analysis {company_name} scope 3 SDG controversy")
 
     news_context = ""
     if scraped_news:
